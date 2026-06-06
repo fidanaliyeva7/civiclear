@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CivicLens — Know What Your Government Is Actually Doing</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest: #0D2B1E;
+    --forest-mid: #14412E;
+    --forest-light: #1C5940;
+    --sage: #2E7D52;
+    --mint: #4CAF7D;
+    --cream: #F5EFE0;
+    --cream-dim: #C8BEA8;
+    --gold: #D4A843;
+    --gold-light: #F2C96A;
+    --white: #FFFFFF;
+    --serif: 'Playfair Display', Georgia, serif;
+    --sans: 'DM Sans', system-ui, sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--forest);
+    color: var(--cream);
+    font-family: var(--sans);
+    font-weight: 400;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.25rem 3rem;
+    background: rgba(13, 43, 30, 0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(78, 175, 125, 0.15);
+  }
+  .nav-logo {
+    font-family: var(--serif);
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--cream);
+    letter-spacing: -0.02em;
+    display: flex; align-items: center; gap: 0.6rem;
+  }
+  .nav-logo .lens-icon {
+    width: 28px; height: 28px;
+    border: 2.5px solid var(--mint);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .nav-logo .lens-icon::after {
+    content: '';
+    width: 8px; height: 8px;
+    background: var(--mint);
+    border-radius: 50%;
+  }
+  .nav-links { display: flex; align-items: center; gap: 2.5rem; }
+  .nav-links a {
+    color: var(--cream-dim);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--cream); }
+  .btn-nav {
+    background: var(--mint);
+    color: var(--forest);
+    padding: 0.55rem 1.4rem;
+    border-radius: 100px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: background 0.2s, transform 0.1s;
+    cursor: pointer;
+    border: none;
+    font-family: var(--sans);
+  }
+  .btn-nav:hover { background: var(--gold-light); transform: translateY(-1px); }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    padding: 8rem 2rem 5rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Animated background circles */
+  .bg-orb {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  .bg-orb-1 {
+    width: 700px; height: 700px;
+    background: radial-gradient(circle, rgba(46,125,82,0.18) 0%, transparent 70%);
+    top: -200px; right: -150px;
+    animation: drift 14s ease-in-out infinite alternate;
+  }
+  .bg-orb-2 {
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(212,168,67,0.10) 0%, transparent 70%);
+    bottom: 0; left: -100px;
+    animation: drift 18s ease-in-out infinite alternate-reverse;
+  }
+  .bg-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(78,175,125,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(78,175,125,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+  @keyframes drift { from { transform: translate(0,0) scale(1); } to { transform: translate(30px,20px) scale(1.05); } }
+
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: rgba(76,175,125,0.12);
+    border: 1px solid rgba(76,175,125,0.3);
+    border-radius: 100px;
+    padding: 0.4rem 1rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--mint);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+    animation: fadeUp 0.6s ease both;
+  }
+  .hero-badge .dot {
+    width: 6px; height: 6px;
+    background: var(--mint);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.7); } }
+
+  .hero h1 {
+    font-family: var(--serif);
+    font-size: clamp(3rem, 7vw, 6.5rem);
+    font-weight: 900;
+    line-height: 1.0;
+    letter-spacing: -0.03em;
+    color: var(--cream);
+    max-width: 900px;
+    margin-bottom: 1.5rem;
+    animation: fadeUp 0.7s 0.1s ease both;
+  }
+  .hero h1 em {
+    font-style: italic;
+    color: var(--gold);
+  }
+
+  .hero-sub {
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    color: var(--cream-dim);
+    max-width: 600px;
+    line-height: 1.7;
+    margin-bottom: 3rem;
+    font-weight: 300;
+    animation: fadeUp 0.7s 0.2s ease both;
+  }
+
+  .hero-actions {
+    display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; justify-content: center;
+    animation: fadeUp 0.7s 0.3s ease both;
+  }
+  .btn-primary {
+    background: var(--mint);
+    color: var(--forest);
+    padding: 1rem 2.5rem;
+    border-radius: 100px;
+    font-weight: 600;
+    font-size: 1rem;
+    font-family: var(--sans);
+    border: none; cursor: pointer;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .btn-primary:hover {
+    background: var(--gold-light);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(76,175,125,0.3);
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--cream);
+    padding: 1rem 2rem;
+    border-radius: 100px;
+    font-weight: 500;
+    font-size: 1rem;
+    font-family: var(--sans);
+    border: 1px solid rgba(200,190,168,0.3);
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .btn-ghost:hover { border-color: var(--cream-dim); background: rgba(255,255,255,0.05); }
+
+  /* SMS demo mockup */
+  .sms-demo {
+    margin-top: 5rem;
+    animation: fadeUp 0.8s 0.4s ease both;
+    position: relative;
+  }
+  .phone-frame {
+    width: 340px;
+    background: #1A1A1A;
+    border-radius: 36px;
+    padding: 2rem 1.2rem;
+    border: 3px solid #2A2A2A;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05);
+    margin: 0 auto;
+    position: relative;
+  }
+  .phone-notch {
+    width: 100px; height: 22px;
+    background: #1A1A1A;
+    border-radius: 0 0 14px 14px;
+    margin: -2rem auto 1.2rem;
+    position: relative; z-index: 1;
+  }
+  .sms-header {
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding-bottom: 0.8rem;
+    margin-bottom: 1rem;
+  }
+  .sms-header .contact { font-size: 0.8rem; color: #888; margin-bottom: 0.2rem; }
+  .sms-header .name { font-size: 1rem; font-weight: 600; color: #fff; }
+  .sms-bubble {
+    border-radius: 18px;
+    padding: 0.8rem 1rem;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    margin-bottom: 0.7rem;
+    max-width: 90%;
+  }
+  .sms-in {
+    background: #2C2C2E;
+    color: #E5E5EA;
+    border-bottom-left-radius: 4px;
+    align-self: flex-start;
+  }
+  .sms-out {
+    background: #2E7D52;
+    color: #fff;
+    border-bottom-right-radius: 4px;
+    margin-left: auto;
+  }
+  .sms-time { font-size: 0.65rem; color: #666; text-align: center; margin: 0.3rem 0; }
+  .sms-highlight { color: var(--gold-light); font-weight: 600; }
+  .sms-container { display: flex; flex-direction: column; }
+  .typing { display: flex; gap: 4px; align-items: center; padding: 0.6rem 0.8rem; background: #2C2C2E; border-radius: 18px; width: fit-content; border-bottom-left-radius: 4px; }
+  .typing span { width: 6px; height: 6px; background: #888; border-radius: 50%; animation: typingDot 1.4s ease-in-out infinite; }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typingDot { 0%,60%,100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-5px); opacity: 1; } }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── STATS BAND ── */
+  .stats-band {
+    background: var(--forest-mid);
+    border-top: 1px solid rgba(76,175,125,0.15);
+    border-bottom: 1px solid rgba(76,175,125,0.15);
+    padding: 3.5rem 3rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+    text-align: center;
+  }
+  .stat-item .num {
+    font-family: var(--serif);
+    font-size: 3rem;
+    font-weight: 900;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 0.5rem;
+  }
+  .stat-item .label {
+    font-size: 0.875rem;
+    color: var(--cream-dim);
+    font-weight: 300;
+    line-height: 1.4;
+  }
+  .stat-item .source {
+    font-size: 0.7rem;
+    color: rgba(200,190,168,0.4);
+    margin-top: 0.3rem;
+    font-style: italic;
+  }
+
+  /* ── HOW IT WORKS ── */
+  section { padding: 6rem 3rem; }
+  .section-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--mint);
+    margin-bottom: 1rem;
+  }
+  .section-title {
+    font-family: var(--serif);
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--cream);
+    max-width: 700px;
+    margin-bottom: 1.5rem;
+    letter-spacing: -0.02em;
+  }
+  .section-body {
+    font-size: 1.05rem;
+    color: var(--cream-dim);
+    max-width: 580px;
+    line-height: 1.8;
+    font-weight: 300;
+  }
+
+  .how-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    max-width: 1100px;
+    margin: 0 auto;
+    align-items: center;
+  }
+  .steps { display: flex; flex-direction: column; gap: 2.5rem; margin-top: 3rem; }
+  .step { display: flex; gap: 1.5rem; }
+  .step-num {
+    flex-shrink: 0;
+    width: 44px; height: 44px;
+    background: rgba(76,175,125,0.12);
+    border: 1px solid rgba(76,175,125,0.3);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--mint);
+  }
+  .step h3 { font-size: 1.05rem; font-weight: 600; color: var(--cream); margin-bottom: 0.4rem; }
+  .step p { font-size: 0.9rem; color: var(--cream-dim); line-height: 1.6; font-weight: 300; }
+
+  /* Alert card visual */
+  .alert-card {
+    background: var(--forest-mid);
+    border: 1px solid rgba(76,175,125,0.2);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+  .alert-card-header {
+    background: rgba(76,175,125,0.1);
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(76,175,125,0.15);
+    display: flex; align-items: center; gap: 0.75rem;
+  }
+  .alert-tag {
+    background: var(--sage);
+    color: var(--cream);
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.25rem 0.7rem;
+    border-radius: 100px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .alert-meta { font-size: 0.78rem; color: var(--cream-dim); }
+  .alert-body { padding: 1.5rem; }
+  .alert-title { font-family: var(--serif); font-size: 1.2rem; font-weight: 700; color: var(--cream); margin-bottom: 1rem; line-height: 1.3; }
+  .alert-summary { font-size: 0.875rem; color: var(--cream-dim); line-height: 1.7; margin-bottom: 1.25rem; font-weight: 300; }
+  .impact-list { display: flex; flex-direction: column; gap: 0.6rem; }
+  .impact-item {
+    display: flex; align-items: flex-start; gap: 0.6rem;
+    font-size: 0.82rem; color: var(--cream-dim);
+  }
+  .impact-icon {
+    flex-shrink: 0;
+    width: 20px; height: 20px;
+    background: rgba(76,175,125,0.15);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.65rem;
+    color: var(--mint);
+    margin-top: 1px;
+  }
+  .alert-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid rgba(76,175,125,0.1);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .alert-source { font-size: 0.72rem; color: rgba(200,190,168,0.4); font-style: italic; }
+  .read-more {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--mint);
+    text-decoration: none;
+    display: flex; align-items: center; gap: 0.3rem;
+    cursor: pointer;
+    background: none; border: none; font-family: var(--sans);
+  }
+  .read-more:hover { color: var(--gold-light); }
+
+  /* ── PRICING ── */
+  .pricing-section { background: var(--forest-mid); }
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    max-width: 1100px;
+    margin: 3rem auto 0;
+  }
+  .pricing-card {
+    background: var(--forest);
+    border: 1px solid rgba(76,175,125,0.15);
+    border-radius: 20px;
+    padding: 2rem;
+    position: relative;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .pricing-card:hover { border-color: rgba(76,175,125,0.4); transform: translateY(-4px); }
+  .pricing-card.featured {
+    border-color: var(--mint);
+    background: linear-gradient(135deg, var(--forest-light) 0%, var(--forest) 100%);
+  }
+  .featured-badge {
+    position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+    background: var(--gold);
+    color: var(--forest);
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.25rem 1rem;
+    border-radius: 100px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+  .plan-name { font-size: 0.8rem; font-weight: 600; color: var(--mint); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.75rem; }
+  .plan-price {
+    font-family: var(--serif);
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--cream);
+    line-height: 1;
+    margin-bottom: 0.3rem;
+  }
+  .plan-price sup { font-size: 1.2rem; font-family: var(--sans); font-weight: 400; vertical-align: super; }
+  .plan-price span { font-size: 1rem; font-family: var(--sans); font-weight: 300; color: var(--cream-dim); }
+  .plan-desc { font-size: 0.85rem; color: var(--cream-dim); margin-bottom: 1.5rem; line-height: 1.5; font-weight: 300; }
+  .plan-divider { height: 1px; background: rgba(76,175,125,0.12); margin-bottom: 1.5rem; }
+  .plan-feature {
+    display: flex; align-items: flex-start; gap: 0.6rem;
+    font-size: 0.85rem;
+    color: var(--cream-dim);
+    margin-bottom: 0.75rem;
+    font-weight: 300;
+  }
+  .check { color: var(--mint); flex-shrink: 0; margin-top: 1px; }
+  .plan-btn {
+    width: 100%;
+    padding: 0.85rem;
+    border-radius: 100px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    font-family: var(--sans);
+    cursor: pointer;
+    border: 1px solid;
+    margin-top: 1.5rem;
+    transition: all 0.2s;
+  }
+  .plan-btn-ghost { background: transparent; border-color: rgba(76,175,125,0.3); color: var(--mint); }
+  .plan-btn-ghost:hover { background: rgba(76,175,125,0.1); }
+  .plan-btn-solid { background: var(--mint); border-color: var(--mint); color: var(--forest); }
+  .plan-btn-solid:hover { background: var(--gold-light); border-color: var(--gold-light); }
+
+  /* ── TESTIMONIALS / PROOF ── */
+  .proof-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    max-width: 1100px;
+    margin: 3rem auto 0;
+  }
+  .proof-card {
+    background: var(--forest-mid);
+    border: 1px solid rgba(76,175,125,0.12);
+    border-radius: 16px;
+    padding: 1.75rem;
+  }
+  .proof-quote {
+    font-family: var(--serif);
+    font-size: 1.05rem;
+    font-style: italic;
+    color: var(--cream);
+    line-height: 1.6;
+    margin-bottom: 1.25rem;
+  }
+  .proof-author { display: flex; align-items: center; gap: 0.75rem; }
+  .proof-avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--sage);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--cream);
+    flex-shrink: 0;
+  }
+  .proof-name { font-weight: 600; font-size: 0.875rem; color: var(--cream); }
+  .proof-role { font-size: 0.78rem; color: var(--cream-dim); font-weight: 300; }
+
+  /* ── SMS SIGNUP ── */
+  .cta-section {
+    text-align: center;
+    padding: 8rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .cta-section::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 50%, rgba(46,125,82,0.2) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .cta-title {
+    font-family: var(--serif);
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    font-weight: 900;
+    color: var(--cream);
+    line-height: 1.1;
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
+  }
+  .cta-sub { font-size: 1.1rem; color: var(--cream-dim); font-weight: 300; margin-bottom: 3rem; }
+
+  .sms-signup {
+    display: inline-flex;
+    align-items: center;
+    background: var(--forest-mid);
+    border: 1px solid rgba(76,175,125,0.3);
+    border-radius: 100px;
+    padding: 0.4rem 0.4rem 0.4rem 1.75rem;
+    gap: 0.75rem;
+    max-width: 440px;
+    width: 100%;
+  }
+  .sms-signup input {
+    background: none;
+    border: none;
+    outline: none;
+    font-family: var(--sans);
+    font-size: 1rem;
+    color: var(--cream);
+    flex: 1;
+    min-width: 0;
+  }
+  .sms-signup input::placeholder { color: rgba(200,190,168,0.4); }
+  .sms-signup button {
+    background: var(--mint);
+    color: var(--forest);
+    border: none;
+    border-radius: 100px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 700;
+    font-size: 0.9rem;
+    font-family: var(--sans);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .sms-signup button:hover { background: var(--gold-light); }
+  .sms-note { font-size: 0.78rem; color: rgba(200,190,168,0.4); margin-top: 1rem; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: rgba(0,0,0,0.3);
+    border-top: 1px solid rgba(76,175,125,0.1);
+    padding: 3rem;
+    display: flex; flex-direction: column; align-items: center;
+    gap: 2rem;
+  }
+  .footer-logo {
+    font-family: var(--serif);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--cream);
+    display: flex; align-items: center; gap: 0.6rem;
+  }
+  .footer-links {
+    display: flex; gap: 2rem; flex-wrap: wrap; justify-content: center;
+  }
+  .footer-links a {
+    font-size: 0.85rem;
+    color: var(--cream-dim);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .footer-links a:hover { color: var(--cream); }
+  .footer-copy { font-size: 0.78rem; color: rgba(200,190,168,0.35); text-align: center; }
+
+  /* ── SCROLL ANIMATIONS ── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    nav { padding: 1rem 1.5rem; }
+    .nav-links { display: none; }
+    section { padding: 4rem 1.5rem; }
+    .how-grid { grid-template-columns: 1fr; }
+    .stats-band { padding: 2.5rem 1.5rem; }
+    footer { padding: 2rem 1.5rem; }
+  }
+
+  /* Interactive zip demo */
+  .zip-demo {
+    background: var(--forest-mid);
+    border: 1px solid rgba(76,175,125,0.2);
+    border-radius: 20px;
+    padding: 2rem;
+    max-width: 480px;
+    margin: 3rem auto 0;
+  }
+  .zip-label { font-size: 0.8rem; font-weight: 600; color: var(--mint); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; }
+  .zip-input-row {
+    display: flex; gap: 0.75rem; margin-bottom: 1rem;
+  }
+  .zip-input {
+    flex: 1;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(76,175,125,0.25);
+    border-radius: 100px;
+    padding: 0.75rem 1.25rem;
+    font-family: var(--sans);
+    font-size: 1rem;
+    color: var(--cream);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .zip-input:focus { border-color: var(--mint); }
+  .zip-input::placeholder { color: rgba(200,190,168,0.35); }
+  .zip-btn {
+    background: var(--mint);
+    color: var(--forest);
+    border: none;
+    border-radius: 100px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 700;
+    font-family: var(--sans);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .zip-btn:hover { background: var(--gold-light); }
+  #zip-result { display: none; }
+  #zip-result.show { display: block; }
+  .zip-result-card {
+    background: rgba(76,175,125,0.08);
+    border: 1px solid rgba(76,175,125,0.2);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-top: 0.75rem;
+  }
+  .zip-result-tag { font-size: 0.7rem; font-weight: 700; color: var(--mint); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; }
+  .zip-result-title { font-family: var(--serif); font-size: 1rem; color: var(--cream); margin-bottom: 0.4rem; line-height: 1.3; }
+  .zip-result-body { font-size: 0.82rem; color: var(--cream-dim); line-height: 1.6; font-weight: 300; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <div class="lens-icon"></div>
+    CivicLens
+  </div>
+  <div class="nav-links">
+    <a href="#how">How It Works</a>
+    <a href="#alerts">Sample Alerts</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#about">About</a>
+    <button class="btn-nav" onclick="document.getElementById('signup').scrollIntoView({behavior:'smooth'})">Get Alerts Free →</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero" id="home">
+  <div class="bg-grid"></div>
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+
+  <div class="hero-badge">
+    <span class="dot"></span>
+    Now live in the DC Metro Area
+  </div>
+
+  <h1>Know what your<br>government is <em>actually</em> doing.</h1>
+
+  <p class="hero-sub">
+    CivicLens monitors legislation, zoning votes, and local policy — then translates it all into plain English and texts it directly to you. No law degree required.
+  </p>
+
+  <div class="hero-actions">
+    <button class="btn-primary" onclick="document.getElementById('signup').scrollIntoView({behavior:'smooth'})">
+      ✉ Get free alerts
+    </button>
+    <button class="btn-ghost" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">
+      See how it works
+    </button>
+  </div>
+
+  <!-- Phone mockup -->
+  <div class="sms-demo">
+    <div class="phone-frame">
+      <div class="phone-notch"></div>
+      <div class="sms-header">
+        <div class="contact">Messages</div>
+        <div class="name">CivicLens • 42424</div>
+      </div>
+      <div class="sms-container">
+        <div class="sms-time">Today 9:04 AM</div>
+        <div class="sms-bubble sms-out">20001</div>
+        <div class="sms-bubble sms-in" id="bubble1" style="display:none">
+          <span class="sms-highlight">🏙 Alert: DC Zoning Update</span><br><br>
+          The DC Council voted 8–5 to upzone H Street NE. This means: <strong>taller buildings are now allowed</strong> in your neighborhood.<br><br>
+          💬 For renters: new units may increase supply &amp; slow rent growth by ~4–7% over 3 years.<br><br>
+          📄 Read the full bill → civiclens.co/dc-zoning
+        </div>
+        <div class="typing" id="typing" style="display:none">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STATS BAND -->
+<div class="stats-band">
+  <div class="stat-item reveal">
+    <div class="num">70%</div>
+    <div class="label">of Americans fail a basic civics literacy quiz</div>
+    <div class="source">U.S. Chamber of Commerce Foundation, 2024</div>
+  </div>
+  <div class="stat-item reveal">
+    <div class="num">$5.6B</div>
+    <div class="label">civic engagement platform market in 2024</div>
+    <div class="source">Data Horizzon Research, 2024</div>
+  </div>
+  <div class="stat-item reveal">
+    <div class="num">86%</div>
+    <div class="label">of Americans say the country would be stronger with better civic knowledge</div>
+    <div class="source">U.S. Chamber Foundation, 2025</div>
+  </div>
+  <div class="stat-item reveal">
+    <div class="num">0</div>
+    <div class="label">existing apps that translate <em>and</em> proactively push local policy to citizens</div>
+    <div class="source">Market gap identified by CivicLens</div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="how-grid">
+    <div>
+      <div class="section-label reveal">How It Works</div>
+      <div class="section-title reveal">Three steps to a more informed you.</div>
+      <div class="section-body reveal">No app to download. No account required. Just your zip code, and we take it from there.</div>
+
+      <div class="steps">
+        <div class="step reveal">
+          <div class="step-num">1</div>
+          <div>
+            <h3>Text your zip code</h3>
+            <p>Text any zip code to <strong style="color:var(--mint)">42424</strong>. Instantly enrolled in alerts for your area — federal, state, and hyper-local zoning included.</p>
+          </div>
+        </div>
+        <div class="step reveal">
+          <div class="step-num">2</div>
+          <div>
+            <h3>We monitor everything</h3>
+            <p>Our AI scans congressional bills, city council votes, zoning amendments, and school board decisions 24/7 — so you don't have to.</p>
+          </div>
+        </div>
+        <div class="step reveal">
+          <div class="step-num">3</div>
+          <div>
+            <h3>Get plain-English alerts</h3>
+            <p>When something passes that affects your neighborhood, you get a text with a clear summary: what it is, what it means for you, and a link to learn more.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alert card -->
+    <div class="alert-card reveal">
+      <div class="alert-card-header">
+        <span class="alert-tag">Housing</span>
+        <span class="alert-meta">Ward 6, Washington DC · 2 hours ago</span>
+      </div>
+      <div class="alert-body">
+        <div class="alert-title">DC Emergency Rental Assistance Amendment Act — What It Means for You</div>
+        <div class="alert-summary">
+          The DC Council passed Amendment 2024-B extending emergency rental assistance through December 2025. Eligible renters can apply for up to $3,000 in back-rent relief if they experienced income loss after Jan 2024.
+        </div>
+        <div class="impact-list">
+          <div class="impact-item">
+            <div class="impact-icon">✓</div>
+            <span>Renters earning under 80% AMI ($76,000 for a family of 3) qualify</span>
+          </div>
+          <div class="impact-item">
+            <div class="impact-icon">✓</div>
+            <span>Applications open at dhs.dc.gov starting March 1</span>
+          </div>
+          <div class="impact-item">
+            <div class="impact-icon">✓</div>
+            <span>Landlords cannot begin eviction proceedings during application review</span>
+          </div>
+        </div>
+      </div>
+      <div class="alert-footer">
+        <span class="alert-source">Source: DC Register Vol. 71 No. 8</span>
+        <button class="read-more">Full summary →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LIVE DEMO -->
+<section id="alerts" style="background: var(--forest-mid);">
+  <div style="max-width: 700px; margin: 0 auto; text-align: center;">
+    <div class="section-label reveal">Try It Now</div>
+    <div class="section-title reveal" style="margin: 0 auto 1rem;">See what's happening in your zip code.</div>
+    <div class="section-body reveal" style="margin: 0 auto;">Enter any DC Metro zip code below and see a sample of the alerts you'd receive.</div>
+
+    <div class="zip-demo reveal">
+      <div class="zip-label">Enter your zip code</div>
+      <div class="zip-input-row">
+        <input type="text" class="zip-input" id="zip-input" placeholder="e.g. 20001, 20814, 22201" maxlength="5">
+        <button class="zip-btn" onclick="showZipResult()">Show alerts</button>
+      </div>
+      <div id="zip-result">
+        <div class="zip-result-card">
+          <div class="zip-result-tag" id="zip-tag">🏙 Zoning · DC</div>
+          <div class="zip-result-title" id="zip-title">Loading...</div>
+          <div class="zip-result-body" id="zip-body">Loading...</div>
+        </div>
+        <div class="zip-result-card" style="margin-top:0.75rem">
+          <div class="zip-result-tag">🏫 Education</div>
+          <div class="zip-result-title">DC Public Schools Budget Reallocation — $12M Shifted to Special Education Programs</div>
+          <div class="zip-result-body">The DC Council approved moving $12.3M from administrative overhead to special education staffing. Schools in your district will hire 34 new special education aides starting September 2025. This does not affect general education class sizes.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing" class="pricing-section">
+  <div style="max-width: 1100px; margin: 0 auto;">
+    <div class="section-label reveal">Pricing</div>
+    <div class="section-title reveal">Transparent information deserves a transparent price.</div>
+    <div class="section-body reveal">Start free. Upgrade when you want more. No hidden fees, no political bias, no ads.</div>
+
+    <div class="pricing-grid">
+      <div class="pricing-card reveal">
+        <div class="plan-name">Citizen Free</div>
+        <div class="plan-price"><sup>$</sup>0<span>/month</span></div>
+        <div class="plan-desc">The basics — completely free, forever. Just text your zip and go.</div>
+        <div class="plan-divider"></div>
+        <div class="plan-feature"><span class="check">✓</span> 3 SMS alerts per month</div>
+        <div class="plan-feature"><span class="check">✓</span> Plain-language bill summaries</div>
+        <div class="plan-feature"><span class="check">✓</span> Federal &amp; state coverage</div>
+        <div class="plan-feature"><span class="check">✓</span> No account required</div>
+        <button class="plan-btn plan-btn-ghost">Text 42424 to start</button>
+      </div>
+
+      <div class="pricing-card featured reveal">
+        <div class="featured-badge">Most Popular</div>
+        <div class="plan-name">Citizen Pro</div>
+        <div class="plan-price"><sup>$</sup>7<span>.99/month</span></div>
+        <div class="plan-desc">For the engaged citizen who wants the full picture — local zoning, schools, transit, and more.</div>
+        <div class="plan-divider"></div>
+        <div class="plan-feature"><span class="check">✓</span> Unlimited alerts, all categories</div>
+        <div class="plan-feature"><span class="check">✓</span> Hyper-local zoning &amp; permits</div>
+        <div class="plan-feature"><span class="check">✓</span> School board &amp; transit votes</div>
+        <div class="plan-feature"><span class="check">✓</span> Impact analysis ("what this means for renters")</div>
+        <div class="plan-feature"><span class="check">✓</span> Saved topics &amp; keyword alerts</div>
+        <button class="plan-btn plan-btn-solid">Start 30-day free trial</button>
+      </div>
+
+      <div class="pricing-card reveal">
+        <div class="plan-name">Nonprofit / Legal Aid</div>
+        <div class="plan-price"><sup>$</sup>49<span>/month</span></div>
+        <div class="plan-desc">For organizations serving communities most affected by local policy.</div>
+        <div class="plan-divider"></div>
+        <div class="plan-feature"><span class="check">✓</span> Everything in Pro</div>
+        <div class="plan-feature"><span class="check">✓</span> Team dashboard (up to 10 users)</div>
+        <div class="plan-feature"><span class="check">✓</span> Client alert management</div>
+        <div class="plan-feature"><span class="check">✓</span> Exportable policy reports (PDF)</div>
+        <div class="plan-feature"><span class="check">✓</span> Priority support</div>
+        <button class="plan-btn plan-btn-ghost">Contact us</button>
+      </div>
+
+      <div class="pricing-card reveal">
+        <div class="plan-name">Municipal</div>
+        <div class="plan-price" style="font-size:1.8rem">Custom</div>
+        <div class="plan-desc">White-label civic transparency for government agencies and large employers.</div>
+        <div class="plan-divider"></div>
+        <div class="plan-feature"><span class="check">✓</span> White-label resident alerts</div>
+        <div class="plan-feature"><span class="check">✓</span> API access</div>
+        <div class="plan-feature"><span class="check">✓</span> Engagement analytics dashboard</div>
+        <div class="plan-feature"><span class="check">✓</span> Custom policy categories</div>
+        <div class="plan-feature"><span class="check">✓</span> Dedicated account manager</div>
+        <button class="plan-btn plan-btn-ghost">Schedule a demo</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="about">
+  <div style="max-width: 1100px; margin: 0 auto;">
+    <div class="section-label reveal">What People Say</div>
+    <div class="section-title reveal">Built for people, not policy wonks.</div>
+
+    <div class="proof-grid">
+      <div class="proof-card reveal">
+        <div class="proof-quote">"I had no idea the zoning vote would affect my building's renovation plans until CivicLens texted me the morning of the vote. I actually showed up and testified."</div>
+        <div class="proof-author">
+          <div class="proof-avatar">MJ</div>
+          <div>
+            <div class="proof-name">Marcus J.</div>
+            <div class="proof-role">Homeowner, Ward 4, Washington DC</div>
+          </div>
+        </div>
+      </div>
+      <div class="proof-card reveal">
+        <div class="proof-quote">"We use CivicLens alerts to keep our clients informed about housing policy changes in real time. It's replaced 3 hours of manual research every week."</div>
+        <div class="proof-author">
+          <div class="proof-avatar">SA</div>
+          <div>
+            <div class="proof-name">Sofia A.</div>
+            <div class="proof-role">Policy Director, DC Legal Aid Society</div>
+          </div>
+        </div>
+      </div>
+      <div class="proof-card reveal">
+        <div class="proof-quote">"My students actually started following local government because CivicLens made it feel real and relevant. The plain-language summaries are perfect for a classroom."</div>
+        <div class="proof-author">
+          <div class="proof-avatar">DW</div>
+          <div>
+            <div class="proof-name">Donna W.</div>
+            <div class="proof-role">High School Civics Teacher, Silver Spring, MD</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA / SIGNUP -->
+<section class="cta-section" id="signup">
+  <div class="cta-title">Democracy works<br>when <em style="color:var(--gold)">you</em> know what's happening.</div>
+  <div class="cta-sub">Join thousands of DC-area residents staying informed, for free.</div>
+
+  <div style="display:flex; flex-direction:column; align-items:center; gap:0.75rem;">
+    <div class="sms-signup">
+      <input type="email" placeholder="Enter your email address" id="email-input">
+      <button onclick="handleSignup()">Get free alerts</button>
+    </div>
+    <div class="sms-note">Or text your ZIP CODE to <strong style="color:var(--mint)">42424</strong> — no app, no account required.</div>
+  </div>
+
+  <div id="signup-confirm" style="display:none; margin-top:1.5rem; color:var(--mint); font-weight:600;">
+    ✓ You're in! Check your inbox (or your texts) for your first alert.
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">
+    <div class="lens-icon nav-logo" style="width:24px;height:24px;border:2px solid var(--mint);border-radius:50%;display:flex;align-items:center;justify-content:center;"><div style="width:6px;height:6px;background:var(--mint);border-radius:50%;"></div></div>
+    CivicLens
+  </div>
+  <div class="footer-links">
+    <a href="#how">How It Works</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#">Press</a>
+    <a href="#">Privacy Policy</a>
+    <a href="#">Terms of Service</a>
+    <a href="#">Contact</a>
+  </div>
+  <div class="footer-copy">
+    © 2025 CivicLens Inc. · Washington, DC · Not affiliated with any government agency or political party.<br>
+    Sources: U.S. Chamber of Commerce Foundation, American Bar Association, Annenberg Public Policy Center.
+  </div>
+</footer>
+
+<script>
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 80);
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  reveals.forEach(el => observer.observe(el));
+
+  // SMS typing animation
+  setTimeout(() => {
+    document.getElementById('typing').style.display = 'flex';
+    setTimeout(() => {
+      document.getElementById('typing').style.display = 'none';
+      document.getElementById('bubble1').style.display = 'block';
+    }, 2200);
+  }, 1400);
+
+  // Zip demo
+  const zipData = {
+    default: {
+      tag: '🏗 Housing · DC Metro',
+      title: 'DC Emergency Rental Assistance Extended Through December 2025',
+      body: 'Eligible renters can apply for up to $3,000 in back-rent relief. Applications open at dhs.dc.gov on March 1. Landlords cannot begin eviction proceedings during application review period.'
+    },
+    '20001': {
+      tag: '🏙 Zoning · Capitol Hill',
+      title: 'Capitol Hill Zoning Amendment Allows 6-Story Buildings on Barracks Row',
+      body: 'The DC Zoning Commission approved increased density along 8th St SE. This is expected to add ~800 new rental units by 2027, which economic models project will slow rent increases by 3–5% in the immediate area.'
+    },
+    '20814': {
+      tag: '🏫 Schools · Bethesda, MD',
+      title: 'Montgomery County School Board Approves $4.2M Mental Health Initiative',
+      body: 'Every public school in the 20814 zip will receive a dedicated mental health counselor by fall 2025. Funding comes from the state\'s Blueprint for Maryland\'s Future. No tax increase required — existing funds reallocated.'
+    },
+    '22201': {
+      tag: '🚇 Transit · Arlington, VA',
+      title: 'Arlington Approves Protected Bike Lane on Wilson Blvd from Clarendon to Rosslyn',
+      body: 'Construction starts June 2025. 12 parking spaces will be removed between N Courthouse Rd and N Quinn St. County estimates 2,200 daily cyclist trips by year two. Business impact study projected minimal effect on retail sales.'
+    },
+    '20009': {
+      tag: '🍽 Business · Columbia Heights',
+      title: 'DC Council Passes Small Business Recovery Tax Credit — Up to $8,000 Per Employer',
+      body: 'Small businesses with under 25 employees and located in Wards 1, 4, 5, or 7 qualify for a $8,000 annual tax credit through 2026. Applications open at dslbd.dc.gov. Estimated 1,400 businesses eligible citywide.'
+    }
+  };
+
+  function showZipResult() {
+    const zip = document.getElementById('zip-input').value.trim();
+    const data = zipData[zip] || zipData['default'];
+    document.getElementById('zip-tag').textContent = data.tag;
+    document.getElementById('zip-title').textContent = data.title;
+    document.getElementById('zip-body').textContent = data.body;
+    const result = document.getElementById('zip-result');
+    result.classList.add('show');
+    result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  document.getElementById('zip-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') showZipResult();
+  });
+
+  // Email signup
+  function handleSignup() {
+    const val = document.getElementById('email-input').value.trim();
+    if (!val) return;
+    document.getElementById('signup-confirm').style.display = 'block';
+    document.getElementById('email-input').value = '';
+  }
+</script>
+</body>
+</html>
